@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  
+  pull_request:
+
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: The full version string, i.e. 2024.0.0-alpha-1 or 2024.1.1
+        required: true
+
+jobs:
+  formatting-analysis:
+    name: "Check Formatting & Analysis"
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      
+      - name: Setup dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Analyze
+        run: dart analyze
+      
+      - name: Check formatting
+        run: dart format -o none --set-exit-if-changed bin/* lib/* test/*
+  
+  test:
+    name: "Run Tests"
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      
+      - name: Setup dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: dart test
