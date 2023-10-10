@@ -1,7 +1,8 @@
 name: pplib_coprocessor
-description: A sample command-line application.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+description: Offload PathPlannerLib's pathfinding to a coprocessor
+publish_to: 'none'
+version: 0.0.0
+repository: https://github.com/mjansen4857/pplib_coprocessor
 
 environment:
   sdk: ^3.1.3
