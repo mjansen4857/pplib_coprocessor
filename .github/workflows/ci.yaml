@@ -69,7 +69,7 @@ jobs:
             artifact-name: pplib_coproc_macos
             arch-name: "MacOS Universal"
           - os: ubuntu-22.04
-            artifact-path: "bin/pplib_coprocessor"
+            artifact-path: "bin/pplib_coprocessor.exe"
             artifact-name: pplib_coproc_linux64
             arch-name: "Linux x64"
     name: "Build - ${{ matrix.arch-name }}"

@@ -2,5 +2,4 @@
 # Created by `dart pub`
 .dart_tool/
 
-bin/pplib_coprocessor
 bin/pplib_coprocessor.exe
