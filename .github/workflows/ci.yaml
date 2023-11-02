@@ -20,7 +20,7 @@ jobs:
     
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Setup dart
         uses: dart-lang/setup-dart@v1
@@ -42,7 +42,7 @@ jobs:
     
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Setup dart
         uses: dart-lang/setup-dart@v1
@@ -54,3 +54,103 @@ jobs:
 
       - name: Run tests
         run: dart test
+  
+  build-desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            artifact-path: "bin/pplib_coprocessor.exe"
+            artifact-name: pplib_coproc_win64
+            arch-name: "Windows x64"
+          - os: macos-13
+            artifact-path: "bin/pplib_coprocessor.exe"
+            artifact-name: pplib_coproc_macos
+            arch-name: "MacOS Universal"
+          - os: ubuntu-22.04
+            artifact-path: "bin/pplib_coprocessor.exe"
+            artifact-name: pplib_coproc_linux64
+            arch-name: "Linux x64"
+    name: "Build - ${{ matrix.arch-name }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Setup dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+      
+      - name: Set release version env
+        if: ${{ github.event_name == 'workflow_dispatch' && matrix.os != 'windows-2022' }}
+        run: echo "VERSION_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+      
+      - name: Set dev version env
+        if: ${{ github.event_name != 'workflow_dispatch' && matrix.os != 'windows-2022' }}
+        run: echo "VERSION_NAME=0.0.0-dev-${{ github.run_number }}" >> $GITHUB_ENV
+      
+      - name: Set release version env windows just has to be different
+        if: ${{ github.event_name == 'workflow_dispatch' && matrix.os == 'windows-2022' }}
+        run: Add-Content -Path ${env:GITHUB_ENV} -Value "VERSION_NAME=${{ github.event.inputs.version }}"
+      
+      - name: Set dev version env windows just has to be different
+        if: ${{ github.event_name != 'workflow_dispatch' && matrix.os == 'windows-2022' }}
+        run: Add-Content -Path ${env:GITHUB_ENV} -Value "VERSION_NAME=0.0.0-dev-${{ github.run_number }}"
+      
+      - name: Set pubspec version
+        run: |
+          dart pub global activate cider
+          dart run cider version "${{ env.VERSION_NAME }}+${{ github.run_number }}"
+      
+      - name: Compile
+        run: dart compile exe bin/pplib_coprocessor.dart
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact-name }}-v${{ env.VERSION_NAME }}
+          path: ${{ matrix.artifact-path }}
+  
+  build-arm:
+    # Only do arm builds for manual releases to save those sweet sweet free runner minutes
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: buildjet-2vcpu-ubuntu-2204-arm
+            artifact-path: "bin/pplib_coprocessor"
+            artifact-name: pplib_coproc_linuxarm64
+            arch-name: "Linux arm64"
+    name: "Build - ${{ matrix.arch-name }}"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Setup dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+      
+      - name: Set pubspec version
+        run: |
+          dart pub global activate cider
+          dart run cider version "${{ github.event.inputs.version }}+${{ github.run_number }}"
+      
+      - name: Compile
+        run: dart compile exe bin/pplib_coprocessor.dart
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact-name }}-v${{ github.event.inputs.version }}
+          path: ${{ matrix.artifact-path }}
