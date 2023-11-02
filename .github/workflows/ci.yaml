@@ -124,7 +124,7 @@ jobs:
       matrix:
         include:
           - os: buildjet-2vcpu-ubuntu-2204-arm
-            artifact-path: "bin/pplib_coprocessor"
+            artifact-path: "bin/pplib_coprocessor.exe"
             artifact-name: pplib_coproc_linuxarm64
             arch-name: "Linux arm64"
     name: "Build - ${{ matrix.arch-name }}"
