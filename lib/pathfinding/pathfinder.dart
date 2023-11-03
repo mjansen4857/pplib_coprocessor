@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:pplib_coprocessor/pathfinding/navgrid.dart';
 
 abstract class Pathfinder {
-  final List<Point> Function() pathGeneratedCallback;
+  final Function(List<Point>) pathGeneratedCallback;
 
   Pathfinder({required this.pathGeneratedCallback});
 

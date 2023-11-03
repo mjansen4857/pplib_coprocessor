@@ -3,11 +3,17 @@ class NavGrid {
   num nodeSizeMeters;
   List<List<bool>> grid;
 
+  late int nodesX;
+  late int nodesY;
+
   NavGrid({
     required this.fieldSize,
     required this.nodeSizeMeters,
     required this.grid,
-  });
+  }) {
+    nodesX = (fieldSize.width / nodeSizeMeters).ceil();
+    nodesY = (fieldSize.height / nodeSizeMeters).ceil();
+  }
 
   NavGrid.fromJson(Map<String, dynamic> json)
       : fieldSize = _sizeFromJson(json['field_size']),
@@ -18,15 +24,15 @@ class NavGrid {
         (dynList as List<dynamic>).map((e) => e as bool).toList(),
     ];
 
-    int rows = (fieldSize.height / nodeSizeMeters).ceil();
-    int cols = (fieldSize.width / nodeSizeMeters).ceil();
+    nodesY = (fieldSize.height / nodeSizeMeters).ceil();
+    nodesX = (fieldSize.width / nodeSizeMeters).ceil();
 
     if (grid.isEmpty ||
-        grid.length != rows ||
+        grid.length != nodesY ||
         grid[0].isEmpty ||
-        grid[0].length != cols) {
+        grid[0].length != nodesX) {
       // Grid does not match what it should, replace it with an emptry grid
-      grid = List.generate(rows, (index) => List.filled(cols, false));
+      grid = List.generate(nodesY, (index) => List.filled(nodesX, false));
     }
   }
 
