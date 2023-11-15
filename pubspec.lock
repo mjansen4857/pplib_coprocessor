@@ -261,10 +261,10 @@ packages:
     dependency: "direct main"
     description:
       name: nt4
-      sha256: "8cdbd55c1d94fafa87616efcfa53938d9f6b810d25f9b696b828fc73765dc6bb"
+      sha256: "1edb547d220f68232378615cd1e320f7455202589e89d1ad33a4aed7839ffa6b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "1.2.0"
   package_config:
     dependency: transitive
     description:

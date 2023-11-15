@@ -1,5 +1,6 @@
-import 'package:pplib_coprocessor/pplib_coprocessor.dart' as pplib_coprocessor;
+import 'package:pplib_coprocessor/pplib_coprocessor.dart';
 
 void main(List<String> arguments) {
-  print('Hello world: ${pplib_coprocessor.calculate()}!');
+  print('Starting pathfinding...');
+  runPathfinding();
 }

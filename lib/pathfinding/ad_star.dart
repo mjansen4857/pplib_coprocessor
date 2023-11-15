@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:pplib_coprocessor/pathfinding/geometry_util.dart';
 import 'package:pplib_coprocessor/pathfinding/navgrid.dart';
 import 'package:pplib_coprocessor/pathfinding/pathfinder.dart';
 
@@ -30,18 +31,53 @@ class ADStar extends Pathfinder {
   bool doMinor = true;
   bool doMajor = true;
   bool needsReset = true;
-  bool needsExtract = false;
 
   ADStar({required super.pathGeneratedCallback});
 
   @override
   void setDynamicObstacles(
       List<(Point<num>, Point<num>)> obs, Point<num> currentRobotPos) {
-    // TODO: implement setDynamicObstacles
+    if (navGrid == null || goalPos == null) {
+      return;
+    }
+
+    dynamicObstacles.clear();
+
+    for ((Point<num>, Point<num>) obstacle in obs) {
+      var gridPos1 = getGridPos(obstacle.$1);
+      var gridPos2 = getGridPos(obstacle.$2);
+
+      int minX = min(gridPos1.x, gridPos2.x);
+      int maxX = max(gridPos1.x, gridPos2.x);
+
+      int minY = min(gridPos1.y, gridPos2.y);
+      int maxY = max(gridPos1.y, gridPos2.y);
+
+      for (int x = minX; x <= maxX; x++) {
+        for (int y = minY; y <= maxY; y++) {
+          dynamicObstacles.add(GridPos(x, y));
+        }
+      }
+    }
+
+    obstacles.clear();
+    obstacles.addAll(staticObstacles);
+    obstacles.addAll(dynamicObstacles);
+
+    needsReset = true;
+    doMinor = true;
+    doMajor = true;
+
+    setStartPosition(currentRobotPos);
+    setGoalPosition(goalPos!);
   }
 
   @override
   void setGoalPosition(Point<num> goalPos) {
+    if (navGrid == null) {
+      return;
+    }
+
     GridPos? pos = findClosestNonObstacle(getGridPos(goalPos));
 
     if (pos != null) {
@@ -57,11 +93,34 @@ class ADStar extends Pathfinder {
 
   @override
   void setNavgrid(NavGrid navGrid) {
-    // TODO: implement setNavgrid
+    this.navGrid = navGrid;
+
+    staticObstacles.clear();
+    for (int row = 0; row < navGrid.nodesY; row++) {
+      for (int col = 0; col < navGrid.nodesX; col++) {
+        if (navGrid.grid[row][col]) {
+          staticObstacles.add(GridPos(col, row));
+        }
+      }
+    }
+
+    obstacles.clear();
+    obstacles.addAll(staticObstacles);
+    obstacles.addAll(dynamicObstacles);
+
+    doMinor = true;
+    doMajor = true;
+    needsReset = true;
+
+    doPathIteration();
   }
 
   @override
   void setStartPosition(Point<num> startPos) {
+    if (navGrid == null) {
+      return;
+    }
+
     GridPos? pos = findClosestNonObstacle(getGridPos(startPos));
 
     if (pos != null && pos != startGridPos) {
@@ -80,12 +139,9 @@ class ADStar extends Pathfinder {
 
     if (needsReset || doMinor || doMajor) {
       doWork();
-    } else if (needsExtract) {
-      pathGeneratedCallback(extractBezier());
-      needsExtract = false;
     }
 
-    if (needsReset || doMinor || doMajor || needsExtract) {
+    if (needsReset || doMinor || doMajor) {
       doPathIteration();
     }
   }
@@ -98,7 +154,7 @@ class ADStar extends Pathfinder {
 
     if (doMinor) {
       computeOrImprovePath();
-      pathGeneratedCallback(extractBezier());
+      pathGeneratedCallback(extractPath());
       doMinor = false;
     } else if (doMajor) {
       if (eps > 1.0) {
@@ -110,7 +166,7 @@ class ADStar extends Pathfinder {
         }
         closed.clear();
         computeOrImprovePath();
-        pathGeneratedCallback(extractBezier());
+        pathGeneratedCallback(extractPath());
       }
 
       if (eps <= 1.0) {
@@ -119,7 +175,7 @@ class ADStar extends Pathfinder {
     }
   }
 
-  List<Point> extractBezier() {
+  List<Point> extractPath() {
     if (goalGridPos! == startGridPos) {
       return [goalPos!];
     }
@@ -208,7 +264,28 @@ class ADStar extends Pathfinder {
         fieldPosPath.last);
     bezierPoints.add(fieldPosPath.last);
 
-    return bezierPoints;
+    List<Point> pathPoints = [];
+    int numSegments = (bezierPoints.length - 1) ~/ 3;
+    for (int i = 0; i < numSegments; i++) {
+      int iOffset = i * 3;
+
+      Point p1 = bezierPoints[iOffset];
+      Point p2 = bezierPoints[iOffset + 1];
+      Point p3 = bezierPoints[iOffset + 2];
+      Point p4 = bezierPoints[iOffset + 3];
+
+      double resolution = 0.05;
+      if (p1.distanceTo(p4) <= 1.0) {
+        resolution = 0.2;
+      }
+
+      for (double t = 0.0; t < 1.0; t += resolution) {
+        pathPoints.add(GeometryUtil.cubicLerp(p1, p2, p3, p4, t));
+      }
+    }
+    pathPoints.add(bezierPoints.last);
+
+    return pathPoints;
   }
 
   num pointToAngle(Point p) {
