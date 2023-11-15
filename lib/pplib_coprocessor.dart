@@ -7,9 +7,13 @@ import 'package:pplib_coprocessor/pathfinding/ad_star.dart';
 import 'package:pplib_coprocessor/pathfinding/navgrid.dart';
 import 'package:pplib_coprocessor/pathfinding/pathfinder.dart';
 
-void runPathfinding() async {
-  NT4Client ntClient =
-      NT4Client(serverBaseAddress: '127.0.0.1'); // TODO: allow config
+void runPathfinding(String serverAddress) async {
+  print('Connecting to server at $serverAddress');
+  NT4Client ntClient = NT4Client(
+    serverBaseAddress: serverAddress,
+    onConnect: () => print('Connected to NT'),
+    onDisconnect: () => print('Lost Connection to NT'),
+  );
 
   NT4Subscription navGridJsonSub = ntClient.subscribe(
       '/PPLibCoprocessor/RemoteADStar/navGrid',
@@ -27,6 +31,7 @@ void runPathfinding() async {
   NT4Topic pathTopic = ntClient.publishNewTopic(
       '/PPLibCoprocessor/RemoteADStar/pathPoints', NT4TypeStr.typeFloat64Arr);
 
+  print('Running RemoteADStar...');
   Pathfinder pathfinder = ADStar(pathGeneratedCallback: (points) {
     try {
       List<double> ntPoints = [];
