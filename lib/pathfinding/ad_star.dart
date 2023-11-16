@@ -302,7 +302,8 @@ class ADStar extends Pathfinder {
     }
 
     HashSet<GridPos> visited = HashSet();
-    Queue<GridPos> queue = Queue.of(getAllNeighbors(pos));
+    Queue<GridPos> queue = Queue();
+    queue.addAll(getAllNeighbors(pos));
 
     while (queue.isNotEmpty) {
       GridPos check = queue.removeFirst();
@@ -312,7 +313,7 @@ class ADStar extends Pathfinder {
       visited.add(check);
 
       for (GridPos neighbor in getAllNeighbors(check)) {
-        if (!visited.contains(neighbor)) {
+        if (!visited.contains(neighbor) && !queue.contains(neighbor)) {
           queue.add(neighbor);
         }
       }
@@ -563,5 +564,10 @@ class GridPos {
       other.y == y;
 
   @override
-  int get hashCode => Object.hash(x, y);
+  int get hashCode => x * 1000 + y;
+
+  @override
+  String toString() {
+    return '($x, $y)';
+  }
 }
