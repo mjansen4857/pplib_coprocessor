@@ -132,7 +132,7 @@ class ADStar extends Pathfinder {
     }
   }
 
-  void doPathIteration() {
+  void doPathIteration() async {
     if (startGridPos == null || goalGridPos == null || navGrid == null) {
       return;
     }
@@ -142,6 +142,8 @@ class ADStar extends Pathfinder {
     }
 
     if (needsReset || doMinor || doMajor) {
+      // Wait a bit to give the nt websocket time to send the path
+      await Future.delayed(const Duration(milliseconds: 1));
       doPathIteration();
     }
   }
