@@ -20,4 +20,27 @@ Replace `<SERVER ADDRESS>` with the robot IP as described above.
 Run the .bat file when connected to the robot.
 
 ## Debian coprocessor setup example (Raspberry Pi, Orange Pi, etc.)
-TODO
+
+1. Put pplib_coprocessor.exe in `/usr/bin`
+2. Create a `/lib/systemd/system/pplib_coprocessor.service` file with the following content:
+    ```
+    [Unit]
+    Description=Service that runs pplib_coprocessor
+
+    [Service]
+    WorkingDirectory=/home/orangepi/polaris
+    # Run pplib_coprocessor at "nice" -10, which is higher priority than standard
+    Nice=-10
+    ExecStart=/usr/bin/pplib_coprocessor.exe --server <ROBOT IP>
+    ExecStop=/bin/systemctl kill pplib_coprocessor
+    Type=simple
+    Restart=on-failure
+    RestartSec=1
+
+    [Install]
+    WantedBy=multi-user.target
+    ```
+
+    Change `<ROBOT IP>` to the IP of your robot.
+3. `sudo systemctl daemon-reload`
+4. `sudo systemctl enable pplib_coprocessor.service`
