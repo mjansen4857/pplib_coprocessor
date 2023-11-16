@@ -28,7 +28,6 @@ Run the .bat file when connected to the robot.
     Description=Service that runs pplib_coprocessor
 
     [Service]
-    WorkingDirectory=/home/orangepi/polaris
     # Run pplib_coprocessor at "nice" -10, which is higher priority than standard
     Nice=-10
     ExecStart=/usr/bin/pplib_coprocessor.exe --server <ROBOT IP>
