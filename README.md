@@ -43,3 +43,4 @@ Run the .bat file when connected to the robot.
     Change `<ROBOT IP>` to the IP of your robot.
 3. `sudo systemctl daemon-reload`
 4. `sudo systemctl enable pplib_coprocessor.service`
+5. Reboot
