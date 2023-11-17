@@ -9,10 +9,37 @@ Even though the file ends with the .exe extension, the macOS and Linux versions 
 
 `<SERVER ADDRESS>` should be the IP address of the robot or simulator. For example, `10.30.15.2`, `10.TE.AM.2`, or `127.0.0.1` for localhost.
 
+## PPLib Usage
+You must change the pathfinder implementation to `RemoteADStar` for the coprocessor based pathfinding to be used. This should be done early in your robot initialization, before any pathfinding commands are created. The easiest way to do this is to just have it as your first call in `robotInit`.
+
+### Java
+```java
+Pathfinding.setPathfinder(new RemoteADStar());
+```
+
+### C++
+```c++
+#include <pathplanner/lib/pathfinding/Pathfinding.h>
+#include <pathplanner/lib/pathfinding/RemoteADStar.h>
+
+using namespace pathplanner;
+
+Pathfinding::setPathfinder(std::make_unique<RemoteADStar>());
+```
+
+### NOTE FOR ADVANTAGEKIT USERS:
+You must use the AdvantageKit compatible version of `RemoteADStar` for it to work in log replay. This is provided as a file you can add to your project [here](https://gist.github.com/mjansen4857/f77f1c3c1a0875625120e941b09d5ea8).
+
+Then, configure the pathfinder with this implementation.
+
+```java
+Pathfinding.setPathfinder(new RemoteADStarAK());
+```
+
 ## Windows/Driver Station setup example
 Create a .bat file in the same folder as the pplib_coprocessor executable, i.e. `pplib_coprocessor.bat` with the following contents:
 ```
-./pplib_coprocessor.exe --server <SERVER ADDRESS>
+pplib_coprocessor.exe --server <SERVER ADDRESS>
 ```
 
 Replace `<SERVER ADDRESS>` with the robot IP as described above.
